@@ -114,11 +114,83 @@ Links Github repository to your local repo.
 ```
 git push -u origin master
 ```
-Sets upstream branch, only needs to be done once
+Sets upstream branch, only needs to be done once  
+` `  
+` `   
 
 
+```
+git stash
+```
+Git slaat tijdelijk alle gemaakte wijzigingen aan bestanden die git in de gaten houd op, en zet de status (inhoud van bestanden) terug naar hoe deze was tijdens de laatste commit  
+
+Dit kan handing zijn als je gemaakte wijzigingen in bestanden die nog niet afzijn tijdelijk wil parkeren. Dit kan bijvoorbeeld nodig zijn voor het fixen van een bug (waarbij je dus nieuwe wijzigingen maakt die los staan van de wijzigingen waarmee je daarvoor bezig was)
+
+Use ```git stash pop``` to undo the stashing after finishing.  
+` `  
+` `  
+` `  
 
 
+## Amending previous commits
+
+Can be dan using the ```rebase``` command
+
+Use the ```rebase``` command to take series of commits which need to be edited and optionally transfer those to a different branch
+
+```
+git rebase -i --root 
+```
+
+Takes everyhting from last commit downwards, as a range to make amendments on (Don't use commit# to stay on master branch).
+
+
+Use ```reword``` to edit the commit message specifically. 
+
+![Example os rebase use to edit commit message](Rebase_example.png). 
+
+ 
+After quiting the command editor, git will take you to edit the commit messages one by one. 
+
+These edits will change all commit hashes (or ID's) from the earliest commit you edit.
+
+*The commit ID is afhankelijk van de commit message, ID van de parent, en de inhoud van de commit (bestand).Als een van deze drie dingen wijzigt, veranderd ook de hash zelf. Zodra je in het midden van de keten van commits een commit wijzigt, verandert niet alleen de hash van die particular commit, maar ook de ID's of hashes van alle commits die erna komen.*  
+` `  
+` `  
+
+Last step: 
+```
+git push -f
+```
+Omdat nu alle commit hashes vanaf de gewijzigde commit zijn verandert, kun je niet simpel pushen naar github. Daarom gebruik je ```git push -force``` en kun je deze manier van commits wijzigen alleen gebruiken individuele projecten.  
+` `  
+` `  
+Use ```git squash``` om commits samen samen te voegen in 1 commit. Dit kan bijvoorbeeld handig zijn als je meerdere commits hebt die verschillende bugs fixen, deze kan je samenvoegen tot one commit that says "fixed bugs".   
+
+` ` 
+` `  
+` `  
+` `  
+## Revert latest changes   
+` `  
+` `  
+
+```
+git checkout 'bestandsnaam'
+```  
+
+Git zet bestand terug naar vorige versie (vanaf laatste commit). Kan gebruikt worden als je niet blij bent met laatste wijziging - een soort van undo functie.  
+` `  
+` `  
+```
+git checkout .
+```
+Verwijst naar huidige directory
+reverts all changes in current (sub)directory, back to how the were on last commit
+
+```git checkout``` kan ook gebruiken om reporsitory naar andere bracnh the zetten
+
+```git checkout master``` switch naar de master branch from other branch
 
 
 
