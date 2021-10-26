@@ -29,3 +29,16 @@ Lambda function:
 ```
 lambda x: x+x
 ```
+
+## Reload
+
+To relaod your module (eg. practise module with class Dog) in the interactive interpreter:
+```
+from importlib import reload
+
+import practise
+reload(practise)
+from practise import Dog
+```
+
+This however won't affect an instance of example_class which already exist -- they will still be of the old type Dog.
