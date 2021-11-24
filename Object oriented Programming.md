@@ -3,6 +3,8 @@ Object-oriented Programming (OOP) is a programming model in which programs are s
 
 The name of a clase is defined with camelcase
 
+By OOP de data zelf en de functies die met de data werken (wat je met die data kan doen) zijn samen gegroepeerd in een class. Met OOP kun je data beter beschermen omdat je de data alleen kan aanpassen met een gemiliteerde set functies van de class, en je hebt dus volledige controle over hoe de data veranderd wordt (encapsulatie).
+
 
 ## Classes
 A class is a blueprinth for creating objects (object instances) and defines the properties (attributes and behaviour (methods) associated with it.
@@ -49,14 +51,86 @@ Any method you create will automatically be created as an instance method, so no
 *Class method vs Static Method*  
 Both a class method and a static method are bound to the class and not the object of the class. A class method however, can access or modify the class state while a static method can’t access or modify it. Use @classmethod decorator or @staticmethod decorator to create the specific method in python.
 
+*dir() method*
+Use the dir() on the class to get a list of all attributes and methods, including the dunder methods
+
+
+## Calling a method
+Het is gebruikelijk om de methode aan te roepen op de instance ipv op de class en de instance mee te geven, dus zo
+
+```
+>>> miles.speak()
+'miles says woof'
+```
+
+in plaats van zo:
+```
+>>> Dog.speak(miles)
+'miles says woof'
+```
+
+Whenever we call a method on an instance, Python looks on the class for our function and then passes the instance and all other arguments in
+
+When we made an instance of our class and then called a method on this instance:
+```
+>>> door = Thing("red", 4)
+>>> door.paint_it_black()
+```
+Python translated this to:
+
+```
+>>> Thing.paint_it_black(door)
+```
+So tehse two lines of code are the same:
+
+```
+>>> Thing.paint_it_black(door)
+>>> door.paint_it_black()
+```
+This principle applies to all classes.
+
+Given a string and a list:
+```
+>>> greeting = "hello"
+>>> numbers = [1, 2, 3]
+```
+Calling a method on either of these objects is the same as calling the method on the class and passing the class instance in.
+
+So these two lines are equivalent:
+
+```
+>>> greeting.upper()
+'HELLO'
+>>> str.upper(greeting)
+'HELLO'
+````
+As are these two:
+```
+>>> numbers.append(4)
+>>> list.append(numbers, 4)
+```
+You shouldn't call MyClass.my_method(my_instance) as that's Python's job. The way we as Python programmers call methods is my_instance.my_method(). But under the hood Python translates that to type(my_instance).my_method(my_instance).
+
+
 ## Dunder or magic methods
+
+Dunder (double underscore) or magic methods are not meant to be invoked directly by you, but the invocation happens internally from the class on a certain action. For example, when you add two numbers using the + operator, internally, the ```__add__()``` method will be called.
+
+```
+>>> num = 10
+>>> num + 5
+15
+>>> num.__add__(5)
+15
+```
+When you do num + 5, the + operator calls the ```__add__(5)``` method. You can also call ```num.__add__(5)``` directly which will give the same result.
 
 ### The ```__init__``` method
 
 The ```__init__ ```method is invoked without any call, whenever an new instance of an object is created: it is the initializer method that is first run as soon as the object is created.  
 
 ### The ```__str__``` method
-The ```__str__()``` method returns the string representation of the object. This method is called when the print() or str() function is invoked on an object.
+The ```__str__()``` method returns the string representation of the object. This method is called internally when the print() or str() function is invoked on an object. 
 
 The default ```__str__()``` method of an object's class doesn't tell any meaningful info of the object other than its id.
 ```
@@ -128,10 +202,42 @@ It does not have to be named self, but it has to be the first parameter of any f
 
 When writing a method the first argument is always ```self```, because we need to invisible pass the actual object instance (dog object), so that we know which instance we are accessing when we apply that method.  
 
+## Inheritance
+
+Inheritance allows you to define a class, the **child class** that inherits all the methods and properties from another class, the **parent class**.   
+
+
+```
+class Student(Person):
+  pass
+```
+This student class has all the same attributes and methods as the Person class. With child classes you can not only accept the default parent methods (with the pass keyword), but also add more methods, or override existing parent methods.
+
+You can use the super() function to call a parent method into a child method to make use of it. For example, we may want to override one aspect of the parent method with certain functionality, but then call the rest of the original parent method to finish the method.
+
+```
+class Student(Person):
+  def __init__(self, fname, lname, year):
+    super().__init__(fname, lname)
+    self.graduationyear = year
+```
+Use ```super()__init__()``` instead of ```Person___init___() ``` because: 
+1. it allows us to avoid using the base class name explicitly 
+2. it also works with Multiple Inheritance.
+
+Since we do not need to specify the name of the base class when we call its members, we can easily change the base class name (if we need to).
+
+
+
+
 
 ### References
 
 [1. Python OOP tutorial on youtube - Tech With Tim](https://www.youtube.com/watch?v=JeznW_7DlB0)  
-[2. OOP at Programiz.com](https://www.programiz.com/python-programming/object-oriented-programming)
+[2. OOP at Programiz.com](https://www.programiz.com/python-programming/object-oriented-programming)   
+[3. Inheritance ](https://www.digitalocean.com/community/tutorials/understanding-class-inheritance-in-python-3)   
+[4. Python Super()](https://www.programiz.com/python-programming/methods/built-in/super)  
+[5. Sefan Wijnja - Classes 2021-03-10](https://vimeo.com/521969539/642927e69d)
+
 
 
