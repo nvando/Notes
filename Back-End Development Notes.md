@@ -42,3 +42,37 @@ from practise import Dog
 ```
 
 This however won't affect an instance of example_class which already exist -- they will still be of the old type Dog.
+
+## Recursion
+
+Met recursion een probleem oplossen kan voor memory issues zorgen omdat het vrij veel overhead heeft. Recursion is vooral handig op plekken waar subtaken snel kleiner worden (binary search) en je dus je snel kan toewerken naar basecase. 
+Daardoor limiteer het aantal keer dat je de functie aanroept, < 100 fucntiecalls zou geen memory issues moeten oplever. Met een milioen functiecalls kun je beter een loop fucntie gebruiken
+
+example: recusively flatten nested dictionaries or lists. 
+example 2: recursively find the factorial of a number:
+
+```
+def iterative_factorial(n):
+
+    if n < 1:
+        return -1
+    for i in range(1, n):
+        n *= i
+    return n
+```
+    
+
+5! == 5 * 4 * 3 * 2 * 1 == 5 * 4!
+```
+def recursive_factorial(n):
+
+    if n <= 1
+        return -1
+    # basecase
+    if n == 1:
+        return 1
+    else:
+        return = n * recursive_factorial(n - 1)
+```
+
+
