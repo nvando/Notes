@@ -1,0 +1,26 @@
+# Commandline interface  
+### Command line  
+Some place on your computer/tablet where you can type commands
+### terminal (application)  
+an application that allows you to type in commands  
+*ig windows terminal*  
+### console  
+synonym for terminal  
+*ig the cli in the browser*
+### shell
+The software running inside a terminal application that allows you to interact with the OS. Different shells can be run within one terminal  
+*ig Powershell, bash, fish*
+### prompt  
+the character before the cursor on each nea command line
+the default prompt will be different per shell
+### REPL
+The command line for a programming language. Stands for:   
+- Read (your command)
+- Evaluate (do something with command)
+- Print (result)
+- Loop (accepting new command)  
+(All commandlines work like this).
+
+*ig After opening the python 3 REPL inside your terminal,  you go inside the program where you can type python commands and are no longer in the shell*
+
+
