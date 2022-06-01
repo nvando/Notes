@@ -21,6 +21,13 @@
 
 2. Activating the virt env by reading the activation script 
 ` `  
+
+    On Windows, run:
+    ```
+    tutorial-env\Scripts\activate
+    ```
+    On Unix or MacOS, run:
+    
     ```
     source env/bin/activate
     ```
