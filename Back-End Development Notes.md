@@ -12,7 +12,7 @@ __name__  ==  '__main__'
 shows whether this file is being run directly by python (```name == main```) 
 or is it being imported as a module (```name == file-name```)
 
-if a file is run directly the ```__name__``` variableis set to ```main```  
+if a file is run directly the ```__name__``` variable is set to ```main```  
 importing the file as a module sets ```__name__``` to the file name
 
 ## Lambda functions
