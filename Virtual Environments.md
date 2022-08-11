@@ -24,7 +24,7 @@
 
     On Windows, run:
     ```
-    tutorial-env\Scripts\activate
+    env\Scripts\activate
     ```
     On Unix or MacOS, run:
     
@@ -72,7 +72,7 @@ v project folder
     > __pycache__
     > .vscode
     > env
-      .gitignore
-      requirements.txt
-      project.py
+    .gitignore
+    requirements.txt
+    project.py
 ```

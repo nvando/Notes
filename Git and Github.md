@@ -55,7 +55,7 @@ Git diff only shows unstaged changes against HEAD (or any hash or branch you sup
 
 To diff any added changes, use:
 
-```git diff --staged```
+<!-- ```git diff --staged``` -->
 
 ## commiting files that changed name or folder
 
