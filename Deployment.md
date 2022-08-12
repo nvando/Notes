@@ -292,17 +292,166 @@ Make sure that all packages that the app depends on are installed on the server 
 
 
 
-To run the application on the VPS, run the following command from the same directory of main.py:
+To start the application on the VPS, one could run the following command from the same directory of main.py:
 
 ```
 gunicorn main:app
 ```
-To have Gunicorn listen for connections from the entire internet, not just your local machine, add one option:
+
+Gunicorn will then listen at http://127.0.0.1:8000 for connections, with the localhost being the default IP it listens to, and port 8000 being the default port it is listens on. 
+
+Although Gunicorn is running now, requests from the outside world will not reach it yet. It can only be communicated with through the localhost IP. Therefore, Nginx needs to be configured first to forward requests to Gunicorn.
+
+
+In addition, Gunicorn doesn't only need to be started up, it needs to be running continously, even after a restart of the server due to updates or a power outage for instance. This can be done by creatig and starting a systemd service. 
+
+
+
+
+
+**Defining and starting the systemd service**  
+Systemd does many things, and one of them is managing services. For example, with ```systemctl restart nginx```, Systemd is used to restart the nginx service. Using Systemd services is a two-step process: 
+   1. Define the process first - which is done in text files, 
+   2. enable the service - done by way of the systemctl command-line tool.
+
+Create a new .service file for your flask app in /etc/systemd/system/ (for instance farm.service). It will need to contain the following: 
 
 ```
-gunicorn main:app -b 0.0.0.0
+[Unit]
+Description=farm gunicorn daemon
+# This tells systemd when this application is ready to start
+After=network.target
+
+[Service]
+Type=notify
+DynamicUser=yes
+RuntimeDirectory=farm
+# Where the command supplied in ExecStart be run
+WorkingDirectory=/var/www/farm/
+#the commanded to start the service
+ExecStart=/usr/local/bin/gunicorn main:app
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=on-failure
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
 ```
 
-If you do all of the above on the VPS you have running at DigitalOcean's, you should be able to go to <SERVER_IP>:8000 in your browser and see your Flask app now!
+Now the Gunicorn service we created can be started and enable so that it starts at boot:
+
+```
+systemctl enable --now farm 
+```
+ 
+Then run: 
+```
+systemctl status farm
+```  
+
+This will show information supplied by Systemd, followed by the familiar Gunicorn messages for a succesful startup.
+
+You can also use:
+```
+$ sudo systemctl start farm
+$ sudo systemctl enable farm
+$ sudo systemctl status farm
+```
+
+other useful commands:
+
+```
+sudo systemctl stop application.service
+```
+```
+sudo systemctl reload-or-restart application.service
+```
+
+
+[Read more on how to manage systemd services](https://www.digitalocean.com/community/tutorials/how-to-use-systemctl-to-manage-systemd-services-and-units)
+
+**Configuring NGINX to proxy requests**
+
+
+Nginx needs to be configered to forward trafic to the gunicorn instance listening on on localhost, port 8000. This is done by modifying de default Nginx config file within the /etc/nginx/sites-available/ folder. The file, which now configures the default welcome website that you see when you go to your server's IP address, can be adjusted as follows:
+
+```
+server {
+    # Listen on port 80
+    listen 80;
+
+    server_name farm;
+
+    access_log  /var/log/nginx/access.log;
+    error_log  /var/log/nginx/error.log;
+
+    # Apply the following for requests to `/` and beyond
+    location / {
+        # Pass the request on to this local IP
+        # This is where our Gunicorn server is listening
+        proxy_pass         http://127.0.0.1:8000/;
+        proxy_redirect     off;
+
+        proxy_set_header   Host                 $host;
+        proxy_set_header   X-Real-IP            $remote_addr;
+        proxy_set_header   X-Forwarded-For      $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto    $scheme;
+    }
+}
+```
+
+Now instruct Systemd to restart Nginx, by running:
+```
+systemctl restart nginx
+``` 
+If you go to your server's IP, you should see your Flask website live. The Flask app is now up and running at this address, even if you exit the VPS environment and shut down your local machine
+
+[READ MORE on NGINX config files](https://mattsegal.dev/nginx-django-reverse-proxy-config.html)
+
+
+
+
+
+
+
+**Deploying multiple Flask application on the same VPS**
+
+WHen deploying another Flask application from the same server, a new systemd .service file has to be created with the name of the new project. Don’t forget to change the working directory to the right project folder.
+
+Then add 
+
+```-b 127.0.0.1:8001```
+
+to the ExecStart command - specifiying to which port this Gunicorn instance needs to listen to. This needs to be a different port number than the one in use (probably default 8000) for the first Flask app you ran
+
+
+
+Then add a service block to the default Nginx configuration file, 
+then adjust nginx default config with extra server block. It needs to specify for which domain or IP address it needs to forward request to added Gunicorn instance. 
+
+
+
+_____________________________________________
+
+To have Gunicorn listen for connections from all network interfaces on your machine, not just your local host, add one option:
+
+```
+gunicorn main:app -b 0.0.0.0 (0.0.0.0 alias voor alle IP addressen on my local machine, meaning localhost and the network connection of the vps)
+```
+
+-b = binding addresss
+
+however, binding to 0.0.0.0 from your VPS is not recommended as it will expose Gunicorn directly to the internet. We instead want to bind to 127.0.0.1, the localhost, which Nginx will use to forward requests to. 
+
+
+
+Ctrl - Z when starting gunicorn direct in Bash(as opposed to running athe systemd service which starts gunicorn). Bring it to the forground again with fg. 
+
+* Do not need to use sudo if logged in a root user 
+
+nadeel restart - kan geen nieuwe request aannemen als ie is gestopt
+reload blijft site active en can keep on taking on requests
 
 
