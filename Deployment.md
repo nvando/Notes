@@ -158,6 +158,10 @@ To test your config file:
 sudo nginx -t
 ```
 
+*To be able to execute commands as root user when being logged in as a non-root user, the 'Sudo' command is used, which stands for 'super user do'. The root user’s password is then requested before the command is actually executed. This is a solution to safely working in Linux with root rights. You do not need to use the sudo command if you are already logged in as the root user*
+
+![sudo user meme](sudo.png)
+
 **NGINX Files and Directories**
 
 - ```/var/www/html```:  
@@ -303,7 +307,7 @@ Gunicorn will then listen at http://127.0.0.1:8000 for connections, with the loc
 Although Gunicorn is running now, requests from the outside world will not reach it yet. It can only be communicated with through the localhost IP. Therefore, Nginx needs to be configured first to forward requests to Gunicorn.
 
 
-In addition, Gunicorn doesn't only need to be started up, it needs to be running continously, even after a restart of the server due to updates or a power outage for instance. This can be done by creatig and starting a systemd service. 
+In addition, Gunicorn doesn't only need to be started up, it needs to be running continously, even after a restart of the server due to updates or a power outage for instance. This can be done by creatig and starting a systemd service. A daemon  is a program that runs continuously and exists for the purpose of handling periodic service requests that a computer system expects to receive.
 
 
 
@@ -314,7 +318,7 @@ Systemd does many things, and one of them is managing services. For example, wit
    1. Define the process first - which is done in text files, 
    2. enable the service - done by way of the systemctl command-line tool.
 
-Create a new .service file for your flask app in /etc/systemd/system/ (for instance farm.service). It will need to contain the following: 
+Create a new .service file for your flask app in /etc/systemd/system/ (for instance farm.service). In it, the Gunicorn process will be daemonized: it will be set up to  run continously in the background, without a user interface, and responds to requests. Define it as follows: 
 
 ```
 [Unit]
@@ -364,10 +368,12 @@ other useful commands:
 
 ```
 sudo systemctl stop application.service
-```
-```
+sudo reload application.service
 sudo systemctl reload-or-restart application.service
 ```
+
+*If you are unsure whether the service has the functionality to reload its configuration, you can issue the reload-or-restart command. This will reload the configuration in-place if available. Otherwise, it will restart the service so the new configuration is picked up. The disadvantage of restarting is that the web application can't handle requests for a short period when being stopped, while it can continue to handle requests if being reloaded*
+
 
 
 [Read more on how to manage systemd services](https://www.digitalocean.com/community/tutorials/how-to-use-systemctl-to-manage-systemd-services-and-units)
@@ -416,17 +422,25 @@ If you go to your server's IP, you should see your Flask website live. The Flask
 
 
 
-**Deploying multiple Flask application on the same VPS**
+**Deploying multiple Flask application on the same VPS**  
+Additional (flask)applications can be deployed from the same server. When adding another Flask application, first copy the project folder to the VPS with secure copy.  Then, to deamonize this new Gunicorn process, a new systemd '.service' file has to be created with the name of the new project. Don’t forget to change the working directory to the right project folder.
 
-WHen deploying another Flask application from the same server, a new systemd .service file has to be created with the name of the new project. Don’t forget to change the working directory to the right project folder.
+In the systemd file, specify to which port this new Gunicorn instance needs to listen to by adding the following line to the ExecStart command:
 
-Then add 
+```
+-b 127.0.0.1:8001
+```
 
-```-b 127.0.0.1:8001```
+This needs to be a different port number than the one used by the the other Flask application(s), which is probably default port 8000.
 
-to the ExecStart command - specifiying to which port this Gunicorn instance needs to listen to. This needs to be a different port number than the one in use (probably default 8000) for the first Flask app you ran
+Execute these commands to make your changes effective:
 
 
+```
+systemctl daemon-reload
+```
+
+The Gunicorn application server should now be up and running, waiting for requests on the different port (in this example port 8001). Now you can configure Nginx to pass web requests to that gunicorn listening on that port by making some small additions to its configuration file.
 
 Then add a service block to the default Nginx configuration file, 
 then adjust nginx default config with extra server block. It needs to specify for which domain or IP address it needs to forward request to added Gunicorn instance. 
@@ -434,24 +448,46 @@ then adjust nginx default config with extra server block. It needs to specify fo
 
 
 _____________________________________________
+## Additional Notes
 
-To have Gunicorn listen for connections from all network interfaces on your machine, not just your local host, add one option:
+**0.0.0.0**  
+If you have Gunicorn deployed on your machine or VPS without a reverse proxy such as Nginx in front of it, you can have it listen for connections from all network interfaces on your machine, not just your local host, by adding one option:
 
 ```
-gunicorn main:app -b 0.0.0.0 (0.0.0.0 alias voor alle IP addressen on my local machine, meaning localhost and the network connection of the vps)
+gunicorn main:app -b 0.0.0.0 
+```
+- 0.0.0.0  is used to monitor network traffic accross all the IP addresses currently assigned to the network interface on the local machine. In the case of a VPS with one assigned IP address, it will mean both the local host and the network connection of the vps.   
+- -b = binding addresss
+
+However, binding to 0.0.0.0 from your VPS is not recommended as it will expose Gunicorn directly to the internet. We instead want to bind to 127.0.0.1, the localhost, which Nginx will use to forward requests to. 
+
+
+**Ctrl Z in Bash**
+
+- Ctrl C is used to kill a process. It terminates your program.
+- ctrl Z is used to pause the process. It will not terminate your program, it will keep your program in background. You can restart your program from that point where you used ctrl z. You can restart your program using the command fg. It means it will return your job in foreground again.
+
+**Sockets versus ports**  
+Socket traffic will be an easy choice if both the webserver (Nginx) and app server(Gunicorn) exist on the same machine. However you will need network ports over network connections as sockets cannot work over network, so:
+
+- If webserver and appserver lie on same machine - GO SOCKET
+- If webserver and appserver are on network - GO PORTS
+
+**Entrypoint files**
+
+To split app configuration between development and production environment,  you can create a file that will serve as the entry point for your application. This will tell our Gunicorn server how to interact with the application. For instance, making avaible and additional route for development options, that can only been seen in the testing environment. The python file needs to be created within the project folder (call it wsgi.py) on your server, and the systemD .service file will need the command wsgi:app added to its ExecStart command, as in:
+
+```
+ExecStart=/usr/local/bin/gunicorn -b 127.0.0.1:8002 main:app wsgi:app
 ```
 
--b = binding addresss
+[Read more here](https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-gunicorn-and-nginx-on-ubuntu-22-04#step-5-configuring-nginx-to-proxy-requests)
 
-however, binding to 0.0.0.0 from your VPS is not recommended as it will expose Gunicorn directly to the internet. We instead want to bind to 127.0.0.1, the localhost, which Nginx will use to forward requests to. 
+**Virtual Environments on the VPS**
+If you run multiple applications on the VPS, create a virtual environment for each app. Each will then run in its own virtual environment, which keeps the apps independent. In each environment install Django, Gunicorn, the application itself and its other dependencies. 
 
+One can then also create system accounts for each of the webapps
+As web applications can become compromised, it is safer to create a separate system user account for each application. The apps will run on the system with the privileges of those special users. Even if one application became compromised, an attacker would only be able to take over the part of the system available to the hacked application.
 
-
-Ctrl - Z when starting gunicorn direct in Bash(as opposed to running athe systemd service which starts gunicorn). Bring it to the forground again with fg. 
-
-* Do not need to use sudo if logged in a root user 
-
-nadeel restart - kan geen nieuwe request aannemen als ie is gestopt
-reload blijft site active en can keep on taking on requests
 
 
