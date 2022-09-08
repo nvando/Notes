@@ -181,5 +181,52 @@ reverts all changes in current (sub)directory, back to how the were on last comm
 
 ```git checkout master``` switch naar de master branch from other branch
 
+## Pushing an empty commit
+You can start your build without making any modifications to the project by pushing an empty commit. 
 
+Using a CI/CD pipelines makes sure that every time something is pushed to the repository, the updated code is automatically tested and deployed. If for some reason the deployment doesn’t get triggered or you just want to re-trigger the deployment (when testing workflow files for instance), you don't necessarily need to make changes to the code to be able to push a commit. The 'empty commit option' will let you commit without adding any modified file to the working tree.
+
+To push an empty commit, push like a regular commit, except add the --allow-empty flag.
+
+```
+git commit --allow-empty -m "Empty-Commit"
+```
+
+## Pull requests
+
+Git pull can be used if the remote repository has updates that you do not have locally. A git pull requests integrates the remote changes with the local repository
+
+```
+git pull
+```
+
+If push to the remote fails because the remote has updates you do do not have locally, you will be prompted to initiate a pull request first.
+
+
+
+One can look at the diverged branches with:
+
+```
+git log --all --decorate --graph
+```
+
+![git log](gitlog.JPG)
+
+This will not show the the changes on the remote repository. For this, use git fetch  to download contents from a remote repository. 
+
+```
+git fetch
+```
+
+After a fetch git log will show the diverged branches
+
+![git fetch](gitfetch.JPG)
+
+Then the merge the two branches use the ```git pull``` command 
+
+``` 
+git pull
+```
+
+![git pull](gitpull.JPG)
 

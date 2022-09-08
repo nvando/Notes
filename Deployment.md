@@ -468,10 +468,15 @@ However, binding to 0.0.0.0 from your VPS is not recommended as it will expose G
 - ctrl Z is used to pause the process. It will not terminate your program, it will keep your program in background. You can restart your program from that point where you used ctrl z. You can restart your program using the command fg. It means it will return your job in foreground again.
 
 **Sockets versus ports**  
+There are two strategies for hosting a Flask/Django application with Gunicorn and nginx. One strategy is to run gunicorn on a network port, as done above.  Another strategy is to bind gunicorn to a UNIX socket on startup [READ MORE on how to do this](https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-gunicorn-and-nginx-on-ubuntu-22-04))
+
 Socket traffic will be an easy choice if both the webserver (Nginx) and app server(Gunicorn) exist on the same machine. However you will need network ports over network connections as sockets cannot work over network, so:
 
 - If webserver and appserver lie on same machine - GO SOCKET
 - If webserver and appserver are on network - GO PORTS
+
+[READ MORE on ports versus sockets](https://stackoverflow.com/questions/19916016/gunicorn-nginx-server-via-socket-or-proxy)
+
 
 **Entrypoint files**
 
