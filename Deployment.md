@@ -46,7 +46,7 @@ Multiple VPS on a harware server:
    
     *SSH keys are a pair of public and private keys that are used to authenticate and establish an encrypted communication channel between a client and a remote machine over the internet.*
 
-    Your SSH jey is stored in the ~/.ssh/ folder. They can be viewed by 
+    Your SSH key is stored in the ~/.ssh/ folder. They can be viewed by 
     ```
     $ ls -al ~/.ssh
     ```  
@@ -494,5 +494,21 @@ If you run multiple applications on the VPS, create a virtual environment for ea
 One can then also create system accounts for each of the webapps
 As web applications can become compromised, it is safer to create a separate system user account for each application. The apps will run on the system with the privileges of those special users. Even if one application became compromised, an attacker would only be able to take over the part of the system available to the hacked application.
 
+
+
+**Logging in to the server as a non-root user over ssh**  
+Find the public key on your local computer, 'id_rsa.pub' and add it to your new user's authorized_keys file on the VPS. Open a new terminal and check for all the available SSH keys pairs on your local machine/account with: 
+
+```
+ls -l ~/.ssh
+```
+
+and then add the public key to the authorized_key file with: 
+```
+cat .ssh/id_rsa.pub | ssh git@<ip> "cat >> ~/.ssh/authorized_keys"
+
+```
+
+Alternatively, you can copy the public key after showing it with the ```cat``` command, and then paste it manually after opening the authorized_keys file on the server with nano
 
 
